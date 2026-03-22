@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeQuest — Learn to Code</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --fg: #f0ede6;
+  --muted: #5a5a5a;
+  --accent: #e8ff47;
+  --accent2: #ff6b35;
+  --accent3: #47c5ff;
+  --card: #111111;
+  --border: #1e1e1e;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Syne Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.15s ease, width 0.2s, height 0.2s;
+  transform: translate(-50%, -50%);
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1.5px solid rgba(232,255,71,0.4);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.4s ease, width 0.3s, height 0.3s;
+  transform: translate(-50%, -50%);
+}
+body:has(a:hover) .cursor, body:has(button:hover) .cursor { transform: translate(-50%,-50%) scale(2.5); }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  mix-blend-mode: difference;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 18px;
+  color: var(--fg);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 32px; }
+.nav-links a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 400;
+}
+.nav-links a:hover { color: var(--fg); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: 140px 48px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+}
+
+.hero-grid-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, transparent 0%, #0a0a0a 100%);
+}
+
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.8s 0.1s both;
+}
+.hero-eyebrow-line {
+  width: 40px; height: 1px;
+  background: var(--accent);
+}
+.hero-eyebrow-text {
+  font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(64px, 10vw, 140px);
+  line-height: 0.92;
+  letter-spacing: -3px;
+  color: var(--fg);
+  max-width: 1000px;
+  animation: fadeUp 0.8s 0.2s both;
+}
+
+.hero-headline .line2 {
+  display: block;
+  -webkit-text-stroke: 1px rgba(240,237,230,0.3);
+  color: transparent;
+}
+
+.hero-headline .accent-word { color: var(--accent); }
+
+.hero-body-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-top: 60px;
+  animation: fadeUp 0.8s 0.4s both;
+}
+
+.hero-desc {
+  font-size: 18px; font-weight: 300;
+  color: var(--muted);
+  max-width: 380px;
+  line-height: 1.75;
+}
+
+.hero-cta-group { display: flex; gap: 16px; align-items: center; flex-shrink: 0; }
+
+.btn-cta {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 15px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none; border-radius: 4px;
+  padding: 16px 36px;
+  cursor: none;
+  transition: all 0.2s;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-cta:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(232,255,71,0.3); }
+
+.btn-ghost {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 15px;
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 15px 36px;
+  cursor: none;
+  transition: all 0.2s;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-ghost:hover { border-color: var(--fg); }
+
+/* Stats row */
+.hero-stats {
+  display: flex; gap: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 48px;
+  animation: fadeUp 0.8s 0.5s both;
+}
+.stat-item {
+  flex: 1;
+  padding: 0 40px 0 0;
+  border-right: 1px solid var(--border);
+}
+.stat-item:first-child { padding-left: 0; }
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 48px;
+  line-height: 1;
+  color: var(--fg);
+  letter-spacing: -2px;
+}
+.stat-num span { color: var(--accent); }
+.stat-label {
+  font-size: 13px; color: var(--muted);
+  margin-top: 6px; font-weight: 300;
+}
+
+/* ── SECTIONS SHOWCASE ── */
+.sections-block {
+  padding: 120px 48px;
+  border-top: 1px solid var(--border);
+}
+
+.block-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 64px; flex-wrap: wrap; gap: 24px;
+}
+
+.block-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 3px;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.block-title {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: clamp(36px, 5vw, 64px);
+  letter-spacing: -2px; line-height: 1;
+  color: var(--fg);
+}
+
+.sections-list { display: flex; flex-direction: column; gap: 0; }
+
+.section-row {
+  display: flex; align-items: center;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 40px;
+  cursor: none;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.section-row::before {
+  content: '';
+  position: absolute; left: -100%; top: 0; bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(232,255,71,0.04), transparent);
+  transition: left 0.4s;
+}
+.section-row:hover::before { left: 100%; }
+.section-row:hover .sec-num { color: var(--accent); }
+.section-row:hover .sec-name { transform: translateX(8px); }
+
+.sec-num {
+  font-family: var(--font-mono);
+  font-size: 12px; color: var(--muted);
+  width: 40px; flex-shrink: 0;
+  transition: color 0.3s;
+}
+.sec-icon { font-size: 28px; flex-shrink: 0; width: 44px; }
+.sec-name {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 22px;
+  letter-spacing: -0.5px;
+  flex: 1; transition: transform 0.3s;
+}
+.sec-desc { font-size: 14px; color: var(--muted); flex: 1.5; line-height: 1.6; font-weight: 300; }
+.sec-tag {
+  font-family: var(--font-mono);
+  font-size: 11px; color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 12px;
+  flex-shrink: 0;
+}
+.sec-arrow { color: var(--muted); font-size: 18px; flex-shrink: 0; transition: transform 0.3s; }
+.section-row:hover .sec-arrow { transform: translateX(6px); color: var(--accent); }
+
+/* ── AI FEATURE ── */
+.ai-block {
+  padding: 120px 48px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.ai-text .block-eyebrow { margin-bottom: 16px; }
+.ai-title {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: clamp(40px, 5vw, 64px);
+  letter-spacing: -2px; line-height: 1.05;
+  margin-bottom: 24px;
+}
+.ai-title .highlight { color: var(--accent); }
+.ai-desc {
+  font-size: 17px; font-weight: 300; color: var(--muted);
+  line-height: 1.8; margin-bottom: 36px;
+}
+
+.ai-features { display: flex; flex-direction: column; gap: 16px; }
+.ai-feature-item {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+.ai-feature-item:hover { border-color: #2e2e2e; }
+.feature-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.feature-text .ft-title { font-family: var(--font-display); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.feature-text .ft-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-weight: 300; }
+
+/* Terminal mockup */
+.terminal-mock {
+  background: #0e0e0e;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.term-bar {
+  background: #161616;
+  padding: 12px 18px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.term-dot { width: 12px; height: 12px; border-radius: 50%; }
+.term-body { padding: 28px; font-family: var(--font-mono); font-size: 13px; line-height: 2; }
+.tm-prompt { color: var(--accent); }
+.tm-kw { color: #ff79c6; }
+.tm-str { color: #50fa7b; }
+.tm-num { color: var(--accent3); }
+.tm-fn { color: #bd93f9; }
+.tm-cm { color: #555; font-style: italic; }
+.tm-out { color: #888; }
+.tm-success { color: #50fa7b; }
+.blink { animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── LEADERBOARD PREVIEW ── */
+.leaderboard-block {
+  padding: 120px 48px;
+  border-top: 1px solid var(--border);
+}
+
+.lb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; margin-top: 64px; }
+
+.lb-mock {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.lb-header-bar {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.lb-header-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+.lb-live { font-family: var(--font-mono); font-size: 10px; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+.lb-live::before { content: ''; display: block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: blink 1.4s infinite; }
+
+.lb-row {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.lb-row:hover { background: rgba(255,255,255,0.02); }
+.lb-row:last-child { border-bottom: none; }
+.lb-rank { font-family: var(--font-mono); font-size: 12px; color: var(--muted); width: 28px; flex-shrink: 0; }
+.lb-rank.gold { color: #ffd700; }
+.lb-rank.silver { color: #c0c0c0; }
+.lb-rank.bronze { color: #cd7f32; }
+.lb-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.lb-name { font-family: var(--font-display); font-weight: 700; font-size: 14px; flex: 1; }
+.lb-score { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+.lb-xp { font-size: 11px; color: var(--muted); }
+
+.lb-desc-block { }
+.lb-desc-title {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(32px, 4vw, 48px);
+  letter-spacing: -1.5px; line-height: 1.1;
+  margin-bottom: 20px;
+}
+.lb-desc-body { font-size: 17px; font-weight: 300; color: var(--muted); line-height: 1.8; margin-bottom: 32px; }
+
+/* ── CTA BLOCK ── */
+.cta-block {
+  padding: 160px 48px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-block::before {
+  content: 'CODE';
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 280px;
+  color: rgba(232,255,71,0.025);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  letter-spacing: -10px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cta-title {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: clamp(48px, 8vw, 96px);
+  letter-spacing: -3px; line-height: 0.95;
+  margin-bottom: 32px;
+}
+.cta-title span { color: var(--accent); }
+.cta-sub { font-size: 18px; color: var(--muted); font-weight: 300; margin-bottom: 48px; }
+
+/* ── FOOTER ── */
+footer {
+  padding: 40px 48px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-copy { font-size: 13px; color: var(--muted); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--fg); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 20px 24px; }
+  .hero { padding: 120px 24px 60px; }
+  .sections-block, .ai-block, .leaderboard-block, .cta-block { padding: 80px 24px; }
+  .ai-block { grid-template-columns: 1fr; gap: 48px; }
+  .lb-grid { grid-template-columns: 1fr; gap: 48px; }
+  .hero-stats { flex-wrap: wrap; }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; }
+  footer { padding: 32px 24px; }
+  .sec-desc { display: none; }
+  body { cursor: auto; }
+  .cursor, .cursor-ring { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">CodeQuest</a>
+  <div class="nav-links">
+    <a href="#sections">Sections</a>
+    <a href="#leaderboard">Leaderboard</a>
+    <a href="game.html">Play</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div style="position:relative;z-index:1">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <div class="hero-eyebrow-text">AI-Powered · 7 Sections · Live Leaderboard</div>
+    </div>
+    <h1 class="hero-headline">
+      Learn to<br>
+      <span class="line2">Code<span class="accent-word">.</span></span>
+    </h1>
+    <div class="hero-body-row">
+      <p class="hero-desc">Master Python through interactive challenges. No boring lectures — just quizzes, streaks, and questions generated fresh by AI every time you play.</p>
+      <div class="hero-cta-group">
+        <a href="game.html" class="btn-cta">Start Playing →</a>
+        <a href="#sections" class="btn-ghost">See Sections</a>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">7<span>+</span></div>
+      <div class="stat-label">Learning Sections</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">AI-Generated Questions</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">3<span>x</span></div>
+      <div class="stat-label">Combo Multiplier</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Boring Lectures</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTIONS -->
+<section class="sections-block" id="sections">
+  <div class="block-header reveal">
+    <div>
+      <div class="block-eyebrow">Curriculum</div>
+      <div class="block-title">What you'll<br>master.</div>
+    </div>
+    <a href="game.html" class="btn-cta">Play Now →</a>
+  </div>
+  <div class="sections-list reveal">
+    <a href="game.html" class="section-row">
+      <span class="sec-num">01</span>
+      <span class="sec-icon">📦</span>
+      <span class="sec-name">Variables</span>
+      <span class="sec-desc">Data types, assignment, naming conventions, type conversion</span>
+      <span class="sec-tag">Beginner</span>
+      <span class="sec-arrow">→</span>
+    </a>
+    <a href="game.html" class="section-row">
+      <span class="sec-num">02</span>
+      <span class="sec-icon">⚙️</span>
+      <span class="sec-name">Functions</span>
+      <span class="sec-desc">def, return, parameters, scope, lambda expressions</span>
+      <span class="sec-tag">Beginner</span>
+      <span class="sec-arrow">→</span>
+    </a>
+    <a href="game.html" class="section-row">
+      <span class="sec-num">03</span>
+      <span class="sec-icon">🔁</span>
+      <span class="sec-name">Loops</span>
+      <span class="sec-desc">for, while, break, continue, enumerate, zip</span>
+      <span class="sec-tag">Beginner</span>
+      <span class="sec-arrow">→</span>
+    </a>
+    <a href="game.html" class="section-row">
+      <span class="sec-num">04</span>
+      <span class="sec-icon">🔀</span>
+      <span class="sec-name">Conditionals</span>
+      <span class="sec-desc">if/elif/else, comparison operators, logical operators</span>
+      <span class="sec-tag">Beginner</span>
+      <span class="sec-arrow">→</span>
+    </a>
+    <a href="game.html" class="section-row">
+      <span class="sec-num">05</span>
+      <span class="sec-icon">📋</span>
+      <span class="sec-name">Lists</span>
+      <span class="sec-desc">Indexing, slicing, methods, list comprehensions, sorting</span>
+      <span class="sec-tag">Intermediate</span>
+      <span class="sec-arrow">→</span>
+    </a>
+    <a href="game.html" class="section-row">
+      <span class="sec-num">06</span>
+      <span class="sec-icon">🏗️</span>
+      <span class="sec-name">OOP</span>
+      <span class="sec-desc">Classes, __init__, methods, inheritance, encapsulation</span>
+      <span class="sec-tag">Intermediate</span>
+      <span class="sec-arrow">→</span>
+    </a>
+    <a href="game.html" class="section-row">
+      <span class="sec-num">07</span>
+      <span class="sec-icon">🌐</span>
+      <span class="sec-name">APIs</span>
+      <span class="sec-desc">requests, JSON, status codes, REST, HTTP methods</span>
+      <span class="sec-tag">Intermediate</span>
+      <span class="sec-arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- AI FEATURE -->
+<section class="ai-block" id="ai">
+  <div class="ai-text reveal">
+    <div class="block-eyebrow">Powered by Claude AI</div>
+    <h2 class="ai-title">Fresh questions.<br><span class="highlight">Every time.</span></h2>
+    <p class="ai-desc">No two sessions are the same. Claude generates new questions, explanations, and hints tailored to each concept — so you never just memorize answers.</p>
+    <div class="ai-features">
+      <div class="ai-feature-item">
+        <div class="feature-icon">✨</div>
+        <div class="feature-text">
+          <div class="ft-title">AI Question Generation</div>
+          <div class="ft-desc">Claude Sonnet generates quiz questions and fill-in-the-blank challenges unique to each session.</div>
+        </div>
+      </div>
+      <div class="ai-feature-item">
+        <div class="feature-icon">💡</div>
+        <div class="feature-text">
+          <div class="ft-title">Contextual Hints</div>
+          <div class="ft-desc">Stuck? Ask for a hint and get an AI-powered explanation tailored to the exact question.</div>
+        </div>
+      </div>
+      <div class="ai-feature-item">
+        <div class="feature-icon">📊</div>
+        <div class="feature-text">
+          <div class="ft-title">Adaptive Difficulty</div>
+          <div class="ft-desc">Questions get harder as you progress within each section. The AI adjusts to your streak.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="terminal-mock reveal">
+    <div class="term-bar">
+      <div class="term-dot" style="background:#ff5f56"></div>
+      <div class="term-dot" style="background:#ffbd2e"></div>
+      <div class="term-dot" style="background:#27c93f"></div>
+      <span style="font-family:var(--font-mono);font-size:11px;color:#444;margin-left:8px">claude-ai · generating question...</span>
+    </div>
+    <div class="term-body">
+      <div><span class="tm-cm"># Section: OOP · Difficulty: Medium</span></div>
+      <div>&nbsp;</div>
+      <div><span class="tm-prompt">Q:</span> <span style="color:#f0ede6">What does <span class="tm-fn">__init__</span> do?</span></div>
+      <div>&nbsp;</div>
+      <div><span class="tm-out">A) It destroys the object</span></div>
+      <div><span class="tm-success">B) It initializes a new instance ✓</span></div>
+      <div><span class="tm-out">C) It copies another class</span></div>
+      <div><span class="tm-out">D) It defines a static method</span></div>
+      <div>&nbsp;</div>
+      <div><span class="tm-prompt">XP</span> <span class="tm-success">+20 · Streak x3 🔥</span></div>
+      <div><span style="color:#f0ede6">_<span class="blink">|</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="leaderboard-block" id="leaderboard">
+  <div class="block-header reveal">
+    <div>
+      <div class="block-eyebrow">Global Leaderboard</div>
+      <div class="block-title">Compete.<br>Climb.</div>
+    </div>
+  </div>
+  <div class="lb-grid">
+    <div class="lb-mock reveal">
+      <div class="lb-header-bar">
+        <div class="lb-header-title">Top Coders</div>
+        <div class="lb-live">LIVE</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank gold">01</div>
+        <div class="lb-avatar" style="background:#1a1a1a">🏆</div>
+        <div class="lb-name">Gaurav M.</div>
+        <div>
+          <div class="lb-score">4,820</div>
+          <div class="lb-xp">All 7 sections · Max streak</div>
+        </div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank silver">02</div>
+        <div class="lb-avatar" style="background:#1a1a1a">⚡</div>
+        <div class="lb-name">Ada K.</div>
+        <div>
+          <div class="lb-score">3,940</div>
+          <div class="lb-xp">6 sections · Streak x8</div>
+        </div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank bronze">03</div>
+        <div class="lb-avatar" style="background:#1a1a1a">🚀</div>
+        <div class="lb-name">Priya S.</div>
+        <div>
+          <div class="lb-score">3,210</div>
+          <div class="lb-xp">5 sections · Streak x5</div>
+        </div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank">04</div>
+        <div class="lb-avatar" style="background:#1a1a1a">🎯</div>
+        <div class="lb-name">Arjun T.</div>
+        <div>
+          <div class="lb-score">2,750</div>
+          <div class="lb-xp">4 sections</div>
+        </div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank">05</div>
+        <div class="lb-avatar" style="background:#1a1a1a">✨</div>
+        <div class="lb-name">You?</div>
+        <div>
+          <div class="lb-score">—</div>
+          <div class="lb-xp">Start playing to rank</div>
+        </div>
+      </div>
+    </div>
+    <div class="lb-desc-block reveal">
+      <h3 class="lb-desc-title">Your score lives forever. Beat it next session.</h3>
+      <p class="lb-desc-body">The global leaderboard persists across sessions. Enter your name before you play — your highest score is saved automatically. No account needed.</p>
+      <a href="game.html" class="btn-cta">Join the Leaderboard →</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-block">
+  <h2 class="cta-title reveal">Ready to<br><span>level up?</span></h2>
+  <p class="cta-sub reveal">No sign-up. No download. Just code.</p>
+  <div class="reveal">
+    <a href="game.html" class="btn-cta" style="font-size:17px;padding:20px 52px">Play CodeQuest →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">© 2025 CodeQuest. Built with Claude AI.</div>
+  <div class="footer-links">
+    <a href="https://github.com" target="_blank">GitHub</a>
+    <a href="game.html">Play</a>
+  </div>
+</footer>
+
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

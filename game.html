@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeQuest — Play</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Syne+Mono&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --surface2: #161616;
+  --border: #1e1e1e;
+  --border2: #2a2a2a;
+  --fg: #f0ede6;
+  --muted: #555;
+  --muted2: #888;
+  --accent: #e8ff47;
+  --accent2: #ff6b35;
+  --accent3: #47c5ff;
+  --green: #50fa7b;
+  --red: #ff5555;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Syne Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+html, body { height: 100%; overflow: hidden; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); }
+
+/* ══ ONBOARDING ══ */
+#onboarding {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; text-align: center; padding: 40px;
+}
+.ob-logo { font-family: var(--font-display); font-weight: 800; font-size: 13px; letter-spacing: 4px; color: var(--muted); text-transform: uppercase; margin-bottom: 48px; }
+.ob-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(40px, 6vw, 72px); letter-spacing: -2px; line-height: 1; margin-bottom: 16px; }
+.ob-title span { color: var(--accent); }
+.ob-sub { font-size: 17px; color: var(--muted2); font-weight: 300; margin-bottom: 48px; max-width: 440px; line-height: 1.7; }
+.ob-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 380px; }
+.ob-input {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 16px 20px;
+  color: var(--fg); font-family: var(--font-body); font-size: 16px; outline: none;
+  transition: border-color 0.2s;
+}
+.ob-input:focus { border-color: var(--accent); }
+.ob-input::placeholder { color: var(--muted); }
+.ob-start {
+  font-family: var(--font-display); font-weight: 700; font-size: 15px;
+  background: var(--accent); color: var(--bg); border: none;
+  border-radius: 8px; padding: 16px; cursor: pointer;
+  transition: all 0.2s; letter-spacing: -0.3px;
+}
+.ob-start:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(232,255,71,0.25); }
+.ob-skip { font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 8px; text-decoration: underline; background: none; border: none; color: var(--muted); }
+.ob-skip:hover { color: var(--fg); }
+
+/* ══ MAIN LAYOUT ══ */
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr 300px;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+}
+
+/* ══ TOPBAR ══ */
+.topbar {
+  grid-column: 1 / -1;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  gap: 16px;
+}
+.topbar-logo { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--fg); text-decoration: none; flex-shrink: 0; }
+.topbar-logo span { color: var(--accent); }
+.topbar-center { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.xp-bar-wrap { display: flex; align-items: center; gap: 10px; }
+.xp-bar { width: 200px; height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, var(--accent3), var(--accent)); border-radius: 3px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+.xp-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted2); }
+.xp-num { font-family: var(--font-mono); font-size: 11px; color: var(--accent); white-space: nowrap; }
+.topbar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.hud-chip {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 5px 12px;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.hud-chip .chip-val { color: var(--accent3); }
+.hud-chip.streak .chip-val { color: var(--accent2); }
+.lb-btn {
+  font-family: var(--font-display); font-weight: 700; font-size: 12px;
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--muted2); border-radius: 6px; padding: 6px 14px;
+  cursor: pointer; transition: all 0.2s;
+}
+.lb-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ══ SIDEBAR ══ */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 0;
+}
+.sidebar-section {
+  padding: 6px 16px;
+  margin-bottom: 2px;
+  display: flex; align-items: center; gap: 12px;
+  border-radius: 6px;
+  margin-left: 8px; margin-right: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.sidebar-section:hover:not(.locked) { background: var(--surface2); }
+.sidebar-section.active { background: var(--surface2); }
+.sidebar-section.active::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--accent); border-radius: 1px;
+}
+.sidebar-section.locked { opacity: 0.35; cursor: not-allowed; }
+.ss-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+.ss-info { flex: 1; min-width: 0; }
+.ss-name { font-family: var(--font-display); font-weight: 700; font-size: 13px; }
+.ss-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.ss-check { font-size: 14px; flex-shrink: 0; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 12px 16px; }
+.sidebar-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; padding: 0 24px; margin-bottom: 6px; }
+
+/* ══ MAIN CONTENT ══ */
+.main { overflow-y: auto; display: flex; flex-direction: column; }
+
+/* Map view */
+#map-view { padding: 40px; }
+.map-greeting { font-family: var(--font-display); font-weight: 800; font-size: clamp(28px, 3vw, 42px); letter-spacing: -1px; margin-bottom: 8px; }
+.map-greeting span { color: var(--accent); }
+.map-sub { font-size: 15px; color: var(--muted2); margin-bottom: 40px; font-weight: 300; }
+.map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.map-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+  cursor: pointer; transition: all 0.25s;
+  position: relative; overflow: hidden;
+}
+.map-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(232,255,71,0.04), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.map-card:hover:not(.locked) { transform: translateY(-4px); border-color: var(--border2); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+.map-card:hover:not(.locked)::after { opacity: 1; }
+.map-card.locked { opacity: 0.4; cursor: not-allowed; }
+.map-card.done { border-color: rgba(80,250,123,0.2); }
+.mc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.mc-icon { font-size: 32px; }
+.mc-badge {
+  font-family: var(--font-mono); font-size: 10px;
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--border2); color: var(--muted);
+}
+.mc-badge.done { border-color: rgba(80,250,123,0.4); color: var(--green); }
+.mc-num { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; }
+.mc-title { font-family: var(--font-display); font-weight: 700; font-size: 18px; margin-bottom: 8px; }
+.mc-desc { font-size: 13px; color: var(--muted2); line-height: 1.6; font-weight: 300; }
+.mc-xp { font-family: var(--font-mono); font-size: 11px; color: var(--accent3); margin-top: 16px; }
+
+/* Game view */
+#game-view { display: none; flex-direction: column; flex: 1; min-height: 0; }
+
+.game-header {
+  padding: 24px 40px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.gh-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.gh-section { font-family: var(--font-display); font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+.gh-section span { color: var(--accent); }
+.gh-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px; transition: color 0.2s; }
+.gh-close:hover { color: var(--fg); }
+.progress-track { display: flex; gap: 4px; }
+.prog-seg {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--border2); transition: all 0.4s;
+}
+.prog-seg.done { background: var(--accent); }
+.prog-seg.current { background: rgba(232,255,71,0.4); }
+
+.question-area {
+  flex: 1; overflow-y: auto;
+  padding: 40px;
+  display: flex; flex-direction: column; gap: 24px;
+}
+
+/* Question card */
+.q-type-badge {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px;
+  color: var(--accent3); text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.q-type-badge::before {
+  content: ''; display: block; width: 6px; height: 6px;
+  background: var(--accent3); border-radius: 50%;
+}
+.q-question {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(18px, 2.5vw, 24px); letter-spacing: -0.5px;
+  line-height: 1.35; color: var(--fg); margin-bottom: 8px;
+  white-space: pre-line;
+}
+.q-sub { font-size: 14px; color: var(--muted2); line-height: 1.7; margin-bottom: 24px; font-weight: 300; }
+
+/* Code snippet */
+.code-snippet {
+  background: #0d0d0d; border: 1px solid var(--border2);
+  border-radius: 8px; padding: 20px;
+  font-family: var(--font-mono); font-size: 13px;
+  line-height: 1.8; margin-bottom: 24px;
+  overflow-x: auto;
+}
+.cs-kw { color: #ff79c6; }
+.cs-str { color: #50fa7b; }
+.cs-num { color: var(--accent3); }
+.cs-fn { color: #bd93f9; }
+.cs-cm { color: #444; font-style: italic; }
+.cs-var { color: var(--accent); }
+
+/* Options */
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer; transition: all 0.18s;
+  font-size: 15px; font-weight: 400;
+}
+.option:hover:not(:disabled) { border-color: var(--border2); background: var(--surface2); transform: translateX(4px); }
+.option.selected { border-color: var(--accent3); background: rgba(71,197,255,0.06); }
+.option.correct { border-color: var(--green); background: rgba(80,250,123,0.08); color: var(--green); }
+.option.wrong { border-color: var(--red); background: rgba(255,85,85,0.08); color: var(--red); }
+.option-key {
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--border2); border-radius: 5px;
+  padding: 3px 9px; flex-shrink: 0; color: var(--muted2);
+}
+.option.correct .option-key { background: rgba(80,250,123,0.15); color: var(--green); }
+.option.wrong .option-key { background: rgba(255,85,85,0.15); color: var(--red); }
+
+/* Fill blank */
+.fill-row { display: flex; gap: 12px; align-items: stretch; }
+.fill-input {
+  flex: 1; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 16px 20px;
+  color: var(--accent); font-family: var(--font-mono);
+  font-size: 16px; outline: none; transition: border-color 0.2s;
+}
+.fill-input:focus { border-color: var(--accent3); }
+.fill-input.correct { border-color: var(--green); color: var(--green); }
+.fill-input.wrong { border-color: var(--red); color: var(--red); }
+.fill-input::placeholder { color: var(--muted); font-style: italic; }
+.check-btn {
+  font-family: var(--font-display); font-weight: 700; font-size: 13px;
+  background: var(--accent); color: var(--bg);
+  border: none; border-radius: 10px; padding: 16px 24px;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.check-btn:hover { transform: translateY(-1px); }
+.check-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Feedback */
+.feedback {
+  border-radius: 10px; padding: 16px 20px;
+  font-size: 14px; line-height: 1.7;
+  display: flex; align-items: flex-start; gap: 12px;
+  animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.feedback.correct { background: rgba(80,250,123,0.08); border: 1px solid rgba(80,250,123,0.2); color: var(--green); }
+.feedback.wrong { background: rgba(255,85,85,0.08); border: 1px solid rgba(255,85,85,0.2); color: #ff8080; }
+.feedback-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.feedback-text { flex: 1; }
+
+@keyframes popIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+
+/* Continue btn */
+.continue-btn {
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  background: var(--accent); color: var(--bg);
+  border: none; border-radius: 10px; padding: 14px 32px;
+  cursor: pointer; transition: all 0.2s; align-self: flex-start;
+  margin-top: 8px;
+}
+.continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,255,71,0.2); }
+
+/* AI loading */
+.ai-loading {
+  display: flex; align-items: center; gap: 16px;
+  padding: 32px 0; color: var(--muted2); font-size: 14px;
+}
+.ai-dots { display: flex; gap: 5px; }
+.ai-dots span {
+  width: 6px; height: 6px; background: var(--accent3); border-radius: 50%;
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+.ai-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ai-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* Result view */
+#result-view {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 60px 40px; flex: 1;
+}
+.rv-icon { font-size: 72px; margin-bottom: 20px; animation: bounceIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes bounceIn { from{transform:scale(0)} to{transform:scale(1)} }
+.rv-title { font-family: var(--font-display); font-weight: 800; font-size: 40px; letter-spacing: -1.5px; margin-bottom: 8px; }
+.rv-score { font-size: 80px; font-weight: 800; font-family: var(--font-display); letter-spacing: -3px; color: var(--accent); line-height: 1; margin: 12px 0; }
+.rv-sub { font-size: 16px; color: var(--muted2); max-width: 400px; line-height: 1.7; font-weight: 300; }
+.rv-xp { font-family: var(--font-mono); font-size: 14px; color: var(--accent3); background: rgba(71,197,255,0.08); border: 1px solid rgba(71,197,255,0.2); border-radius: 8px; padding: 12px 24px; margin: 24px 0; }
+.rv-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.rv-btn {
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  padding: 14px 28px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  border: none;
+}
+.rv-btn.primary { background: var(--accent); color: var(--bg); }
+.rv-btn.primary:hover { transform: translateY(-2px); }
+.rv-btn.secondary { background: var(--surface); color: var(--fg); border: 1px solid var(--border2); }
+.rv-btn.secondary:hover { border-color: var(--border2); background: var(--surface2); }
+
+/* ══ RIGHT PANEL — LEADERBOARD ══ */
+.right-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.rp-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.rp-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+.rp-live { font-family: var(--font-mono); font-size: 10px; color: var(--accent); display: flex; align-items: center; gap: 5px; }
+.rp-live::before { content:''; display:block; width:5px;height:5px;background:var(--accent);border-radius:50%; animation: blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+
+.lb-entries { flex: 1; padding: 8px 0; }
+.lb-entry {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.lb-entry:hover { background: var(--surface2); }
+.lb-entry:last-child { border-bottom: none; }
+.lbe-rank { font-family: var(--font-mono); font-size: 11px; width: 22px; color: var(--muted); flex-shrink: 0; }
+.lbe-rank.g { color: #ffd700; }
+.lbe-rank.s { color: #c0c0c0; }
+.lbe-rank.b { color: #cd7f32; }
+.lbe-avatar { width: 28px; height: 28px; border-radius: 50%; font-size: 14px; display:flex; align-items:center; justify-content:center; background: var(--border2); flex-shrink:0; }
+.lbe-info { flex: 1; min-width: 0; }
+.lbe-name { font-family: var(--font-display); font-weight: 700; font-size: 13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lbe-detail { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.lbe-score { font-family: var(--font-mono); font-size: 12px; color: var(--accent); flex-shrink:0; }
+
+.lbe-self { background: rgba(232,255,71,0.04); border-left: 2px solid var(--accent); }
+
+/* Your stats box */
+.my-stats {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.my-stats-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+.my-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ms-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+.ms-val { font-family: var(--font-display); font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+.ms-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Combo flash */
+.combo-flash {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) scale(0);
+  background: var(--accent); color: var(--bg);
+  font-family: var(--font-display); font-weight: 800; font-size: 18px;
+  padding: 10px 28px; border-radius: 8px;
+  z-index: 999; pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.combo-flash.show { transform: translateX(-50%) scale(1); }
+
+/* Hint modal */
+.hint-panel {
+  position: fixed; bottom: 20px; right: 320px;
+  max-width: 320px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 10px;
+  padding: 16px 18px;
+  z-index: 100; font-size: 13px; color: var(--muted2); line-height: 1.7;
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.3s; pointer-events: none;
+}
+.hint-panel.show { opacity: 1; transform: translateY(0); }
+.hint-label { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 2px; margin-bottom: 8px; display:block; }
+
+/* Responsive */
+@media (max-width: 1100px) { .app { grid-template-columns: 220px 1fr; } .right-panel { display: none; } .hint-panel { right: 20px; } }
+@media (max-width: 700px) { .app { grid-template-columns: 1fr; } .sidebar { display: none; } .topbar { padding: 0 12px; } .xp-bar { width: 100px; } }
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-logo">CodeQuest</div>
+  <h1 class="ob-title">Ready to<br><span>level up?</span></h1>
+  <p class="ob-sub">Enter your name for the global leaderboard. Your best score is saved automatically.</p>
+  <div class="ob-form">
+    <input class="ob-input" id="player-name-input" type="text" placeholder="Your name..." maxlength="24" autocomplete="off" />
+    <button class="ob-start" onclick="startOnboarding()">Start Playing →</button>
+    <button class="ob-skip" onclick="startOnboarding(true)">Skip, play as Guest</button>
+  </div>
+</div>
+
+<!-- COMBO FLASH -->
+<div class="combo-flash" id="combo-flash">🔥 COMBO x<span id="combo-num">2</span></div>
+
+<!-- HINT PANEL -->
+<div class="hint-panel" id="hint-panel">
+  <span class="hint-label">HINT</span>
+  <span id="hint-text"></span>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo">Code<span>Quest</span></a>
+    <div class="topbar-center">
+      <span class="xp-label">XP</span>
+      <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+      <span class="xp-num" id="xp-num">0 / 700</span>
+    </div>
+    <div class="topbar-right">
+      <div class="hud-chip">Score <span class="chip-val" id="hud-score">0</span></div>
+      <div class="hud-chip streak">🔥 <span class="chip-val" id="hud-streak">0</span></div>
+      <button class="lb-btn" onclick="scrollToMyScore()">Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar"></div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-area">
+    <!-- Map -->
+    <div id="map-view">
+      <div style="padding:40px 40px 0">
+        <div class="map-greeting">Hello, <span id="map-name">Coder</span>.</div>
+        <div class="map-sub">Pick a section to start earning XP.</div>
+      </div>
+      <div style="padding:24px 40px 40px">
+        <div class="map-grid" id="map-grid"></div>
+      </div>
+    </div>
+
+    <!-- Game -->
+    <div id="game-view">
+      <div class="game-header">
+        <div class="gh-top">
+          <div class="gh-section" id="gh-section-name">Loading...</div>
+          <button class="gh-close" onclick="backToMap()">✕ Exit</button>
+        </div>
+        <div class="progress-track" id="progress-track"></div>
+      </div>
+      <div class="question-area" id="question-area"></div>
+    </div>
+
+    <!-- Result -->
+    <div id="result-view">
+      <div class="rv-icon" id="rv-icon">🏆</div>
+      <div class="rv-title" id="rv-title">Section Complete!</div>
+      <div class="rv-score" id="rv-score">100%</div>
+      <p class="rv-sub" id="rv-sub">Great work!</p>
+      <div class="rv-xp" id="rv-xp">+200 XP</div>
+      <div class="rv-actions">
+        <button class="rv-btn secondary" onclick="backToMap()">← Back to Map</button>
+        <button class="rv-btn primary" id="rv-next" onclick="nextSection()">Next Section →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-header">
+      <div class="rp-title">
+        Global Leaderboard
+        <span class="rp-live">LIVE</span>
+      </div>
+    </div>
+    <div class="lb-entries" id="lb-entries">
+      <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Loading scores...</div>
+    </div>
+    <div class="my-stats">
+      <div class="my-stats-title">Your Stats</div>
+      <div class="my-stats-grid">
+        <div class="ms-item"><div class="ms-val" id="stat-score">0</div><div class="ms-label">Score</div></div>
+        <div class="ms-item"><div class="ms-val" id="stat-streak">0</div><div class="ms-label">Best Streak</div></div>
+        <div class="ms-item"><div class="ms-val" id="stat-sections">0</div><div class="ms-label">Sections</div></div>
+        <div class="ms-item"><div class="ms-val" id="stat-xp">0</div><div class="ms-label">Total XP</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  SECTION DEFINITIONS
+// ══════════════════════════════════════════
+const SECTIONS = [
+  { id:'variables',    icon:'📦', title:'Variables',    xp:100, desc:'Data types, assignment, naming, type conversion',   tag:'Beginner',     color:'#47c5ff' },
+  { id:'functions',    icon:'⚙️', title:'Functions',    xp:150, desc:'def, return, parameters, scope, lambda',            tag:'Beginner',     color:'#50fa7b' },
+  { id:'loops',        icon:'🔁', title:'Loops',        xp:150, desc:'for, while, break, continue, enumerate',            tag:'Beginner',     color:'#ff79c6' },
+  { id:'conditionals', icon:'🔀', title:'Conditionals', xp:150, desc:'if/elif/else, comparison & logical operators',      tag:'Beginner',     color:'#ffb86c' },
+  { id:'lists',        icon:'📋', title:'Lists',        xp:200, desc:'Indexing, slicing, methods, comprehensions',        tag:'Intermediate', color:'#e8ff47' },
+  { id:'oop',          icon:'🏗️', title:'OOP',          xp:250, desc:'Classes, __init__, methods, inheritance',           tag:'Intermediate', color:'#ff6b35' },
+  { id:'apis',         icon:'🌐', title:'APIs',         xp:300, desc:'requests, JSON, status codes, REST, HTTP',          tag:'Intermediate', color:'#bd93f9' },
+];
+
+const TOTAL_XP = SECTIONS.reduce((s, x) => s + x.xp, 0);
+
+// Fallback questions (used when AI is unavailable)
+const FALLBACK_QUESTIONS = {
+  variables: [
+    { type:'learn', title:'What is a Variable?', body:'A variable is a named container for data. Python is dynamically typed — you don\'t declare types.', code:'<span class="cs-var">name</span> = <span class="cs-str">"Ada"</span>\n<span class="cs-var">age</span>  = <span class="cs-num">28</span>\n<span class="cs-var">pi</span>   = <span class="cs-num">3.14</span>\n<span class="cs-fn">print</span>(<span class="cs-var">name</span>, <span class="cs-var">age</span>)  <span class="cs-cm"># Ada 28</span>' },
+    { type:'quiz', q:'Which is a valid variable name?', opts:['2fast','my-var','_count','my var'], answer:2, explain:'Variable names can start with underscore or letter, no hyphens or spaces.' },
+    { type:'fill', q:'Store the string "Python" in a variable called lang:', answer:'lang = "Python"', hint:'Use the assignment operator =', explain:'"lang = \'Python\'" assigns the string to the variable.' },
+    { type:'quiz', q:'What does type("hello") return?', opts:['str','string','text','char'], answer:0, explain:'Python\'s type() returns <class str> — the built-in string type.' },
+    { type:'quiz', q:'What is x after: x = 5\nx = x + 3', opts:['5','3','8','Error'], answer:2, explain:'x starts at 5, then 5+3=8 is stored back into x.' },
+  ],
+  functions: [
+    { type:'learn', title:'Defining Functions', body:'Functions let you write code once and reuse it. Use "def" to define, "return" to send back a value.', code:'<span class="cs-kw">def</span> <span class="cs-fn">add</span>(<span class="cs-var">a</span>, <span class="cs-var">b</span>):\n    <span class="cs-kw">return</span> <span class="cs-var">a</span> + <span class="cs-var">b</span>\n\n<span class="cs-fn">print</span>(<span class="cs-fn">add</span>(<span class="cs-num">3</span>, <span class="cs-num">4</span>))  <span class="cs-cm"># 7</span>' },
+    { type:'quiz', q:'What keyword defines a function in Python?', opts:['function','define','def','fn'], answer:2, explain:'"def" is Python\'s keyword for defining a function.' },
+    { type:'fill', q:'What keyword sends a value back from a function?', answer:'return', hint:'Think "give back"', explain:'"return" exits the function and passes the value to the caller.' },
+    { type:'quiz', q:'What prints?\ndef greet(name="World"):\n    print("Hello", name)\ngreet()', opts:['Hello','Hello World','Error','Hello name'], answer:1, explain:'Default parameter "World" is used since no argument was passed.' },
+    { type:'quiz', q:'A function with no return statement returns:', opts:['"None"','0','undefined','null'], answer:0, explain:'Python functions implicitly return None if no return statement is present.' },
+  ],
+  loops: [
+    { type:'learn', title:'Loops in Python', body:'for loops iterate over sequences. while loops run until a condition is False. Use break to exit early.', code:'<span class="cs-kw">for</span> <span class="cs-var">i</span> <span class="cs-kw">in</span> <span class="cs-fn">range</span>(<span class="cs-num">3</span>):\n    <span class="cs-fn">print</span>(<span class="cs-var">i</span>)  <span class="cs-cm"># 0, 1, 2</span>\n\n<span class="cs-var">x</span> = <span class="cs-num">5</span>\n<span class="cs-kw">while</span> <span class="cs-var">x</span> > <span class="cs-num">0</span>:\n    <span class="cs-var">x</span> -= <span class="cs-num">1</span>' },
+    { type:'quiz', q:'How many times does this loop run?\nfor i in range(1, 6):', opts:['4','5','6','1'], answer:1, explain:'range(1,6) gives [1,2,3,4,5] — five values.' },
+    { type:'fill', q:'What keyword skips the current iteration?', answer:'continue', hint:'The opposite of break', explain:'"continue" skips the rest of the loop body and goes to the next iteration.' },
+    { type:'quiz', q:'What does break do in a loop?', opts:['Skips current step','Ends the loop entirely','Pauses execution','Raises an error'], answer:1, explain:'"break" immediately terminates the loop, regardless of remaining iterations.' },
+    { type:'quiz', q:'for i in enumerate(["a","b"]):\n  print(i)\n\nWhat is first output?', opts:['a','0','(0, "a")','[0, "a"]'], answer:2, explain:'enumerate returns (index, value) tuples.' },
+  ],
+  conditionals: [
+    { type:'learn', title:'if / elif / else', body:'Conditionals let code branch based on True/False. Python uses indentation — no curly braces!', code:'<span class="cs-var">score</span> = <span class="cs-num">75</span>\n<span class="cs-kw">if</span> <span class="cs-var">score</span> >= <span class="cs-num">90</span>:\n    <span class="cs-fn">print</span>(<span class="cs-str">"A"</span>)\n<span class="cs-kw">elif</span> <span class="cs-var">score</span> >= <span class="cs-num">70</span>:\n    <span class="cs-fn">print</span>(<span class="cs-str">"B"</span>)  <span class="cs-cm"># runs</span>\n<span class="cs-kw">else</span>:\n    <span class="cs-fn">print</span>(<span class="cs-str">"C"</span>)' },
+    { type:'quiz', q:'What prints?\nx = 10\nif x > 20: print("Big")\nelif x > 5: print("Med")\nelse: print("Small")', opts:['Big','Med','Small','Nothing'], answer:1, explain:'10 > 20 is False, but 10 > 5 is True, so "Med" prints.' },
+    { type:'fill', q:'What operator checks equality?', answer:'==', hint:'Not = (that\'s assignment!)', explain:'"==" checks equality. "=" assigns values.' },
+    { type:'quiz', q:'x = 5\nresult = x > 3 and x < 10\nWhat is result?', opts:['True','False','5','None'], answer:0, explain:'Both x>3 and x<10 are True, so "and" gives True.' },
+    { type:'quiz', q:'Which keyword inverts a boolean?', opts:['not','no','!','inv'], answer:0, explain:'"not True" gives False, "not False" gives True.' },
+  ],
+  lists: [
+    { type:'learn', title:'Python Lists', body:'Lists are ordered, mutable sequences. Access items by index (0-based). Negative indices count from the end.', code:'<span class="cs-var">nums</span> = [<span class="cs-num">10</span>, <span class="cs-num">20</span>, <span class="cs-num">30</span>]\n<span class="cs-fn">print</span>(<span class="cs-var">nums</span>[<span class="cs-num">0</span>])   <span class="cs-cm"># 10</span>\n<span class="cs-fn">print</span>(<span class="cs-var">nums</span>[-<span class="cs-num">1</span>])  <span class="cs-cm"># 30</span>\n<span class="cs-var">nums</span>.<span class="cs-fn">append</span>(<span class="cs-num">40</span>)\n<span class="cs-fn">print</span>(<span class="cs-fn">len</span>(<span class="cs-var">nums</span>)) <span class="cs-cm"># 4</span>' },
+    { type:'quiz', q:'items = ["a","b","c","d"]\nprint(items[1:3])', opts:['["a","b"]','["b","c"]','["b","c","d"]','["a","b","c"]'], answer:1, explain:'Slicing [1:3] gives index 1 and 2 (not including 3).' },
+    { type:'fill', q:'What method adds an item to the end of a list?', answer:'append', hint:'Like adding to the end', explain:'.append(item) adds one item to the end of the list.' },
+    { type:'quiz', q:'[x*2 for x in range(3)] gives:', opts:['[0,1,2]','[0,2,4]','[2,4,6]','[1,2,3]'], answer:1, explain:'range(3) = [0,1,2]. Multiplying each by 2: [0,2,4].' },
+    { type:'quiz', q:'What does sorted([3,1,2]) return?', opts:['[3,1,2]','[1,2,3]','[3,2,1]','None'], answer:1, explain:'sorted() returns a new sorted list without modifying the original.' },
+  ],
+  oop: [
+    { type:'learn', title:'Classes & Objects', body:'A class is a blueprint. An object is an instance of that blueprint. __init__ runs when you create an object.', code:'<span class="cs-kw">class</span> <span class="cs-fn">Dog</span>:\n    <span class="cs-kw">def</span> <span class="cs-fn">__init__</span>(<span class="cs-var">self</span>, <span class="cs-var">name</span>):\n        <span class="cs-var">self</span>.<span class="cs-var">name</span> = <span class="cs-var">name</span>\n\n    <span class="cs-kw">def</span> <span class="cs-fn">bark</span>(<span class="cs-var">self</span>):\n        <span class="cs-fn">print</span>(<span class="cs-var">self</span>.<span class="cs-var">name</span>, <span class="cs-str">"says Woof!"</span>)\n\n<span class="cs-var">d</span> = <span class="cs-fn">Dog</span>(<span class="cs-str">"Rex"</span>)\n<span class="cs-var">d</span>.<span class="cs-fn">bark</span>()' },
+    { type:'quiz', q:'What is the first parameter of any class method?', opts:['this','cls','self','me'], answer:2, explain:'"self" refers to the current instance. It\'s a convention (not enforced), but always use it.' },
+    { type:'fill', q:'What method runs automatically when an object is created?', answer:'__init__', hint:'Double underscore on both sides', explain:'"__init__" is the constructor — called every time you create an instance with ClassName().' },
+    { type:'quiz', q:'What is inheritance in OOP?', opts:['Copying a class','A subclass getting features from a parent class','Hiding data','Making a singleton'], answer:1, explain:'Inheritance lets a child class reuse attributes and methods from a parent class.' },
+    { type:'quiz', q:'class B(A): means:', opts:['B is inside A','B inherits from A','B replaces A','B imports A'], answer:1, explain:'The parentheses after a class name declare the parent class it inherits from.' },
+  ],
+  apis: [
+    { type:'learn', title:'Working with APIs', body:'APIs let programs talk to each other over HTTP. The "requests" library makes this easy in Python. Always check status codes!', code:'<span class="cs-kw">import</span> requests\n\n<span class="cs-var">res</span> = requests.<span class="cs-fn">get</span>(<span class="cs-str">"https://api.example.com/data"</span>)\n<span class="cs-fn">print</span>(<span class="cs-var">res</span>.<span class="cs-var">status_code</span>)  <span class="cs-cm"># 200</span>\n<span class="cs-var">data</span> = <span class="cs-var">res</span>.<span class="cs-fn">json</span>()     <span class="cs-cm"># dict</span>' },
+    { type:'quiz', q:'HTTP status code 200 means:', opts:['Not found','Server error','OK / Success','Unauthorized'], answer:2, explain:'200 OK is the standard success response. 404=Not Found, 500=Server Error, 401=Unauthorized.' },
+    { type:'fill', q:'Which Python library is most commonly used for HTTP requests?', answer:'requests', hint:'It\'s also the name of the action...', explain:'"requests" is the most popular library. Install with: pip install requests' },
+    { type:'quiz', q:'res.json() converts the response to:', opts:['a string','a list only','a Python dict/list','raw bytes'], answer:2, explain:'.json() parses the response body as JSON and returns a Python dict or list.' },
+    { type:'quiz', q:'Which HTTP method is used to CREATE a new resource?', opts:['GET','POST','DELETE','PATCH'], answer:1, explain:'POST sends data to create. GET retrieves. DELETE removes. PATCH partially updates.' },
+  ],
+};
+
+// ══════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════
+let G = {
+  playerName: 'Coder',
+  score: 0, totalXp: 0, bestStreak: 0,
+  streak: 0, xp: 0,
+  completed: new Set(),
+  currentSection: null,
+  currentStep: 0,
+  stepResults: [],
+  questions: [],
+  aiAvailable: true,
+};
+
+// ══════════════════════════════════════════
+//  ONBOARDING
+// ══════════════════════════════════════════
+function startOnboarding(guest = false) {
+  const nameEl = document.getElementById('player-name-input');
+  G.playerName = guest ? 'Guest' : (nameEl.value.trim() || 'Coder');
+  document.getElementById('player-name-input').value = G.playerName;
+
+  document.getElementById('onboarding').style.opacity = '0';
+  document.getElementById('onboarding').style.transition = 'opacity 0.5s';
+  setTimeout(() => {
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('app').style.display = 'grid';
+    init();
+  }, 500);
+}
+document.getElementById('player-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startOnboarding();
+});
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+function init() {
+  document.getElementById('map-name').textContent = G.playerName;
+  renderSidebar();
+  renderMap();
+  loadLeaderboard();
+  showView('map');
+}
+
+function showView(v) {
+  ['map-view','game-view','result-view'].forEach(id => {
+    const el = document.getElementById(id);
+    if (id === v + '-view') { el.style.display = 'flex'; el.style.flexDirection = 'column'; }
+    else el.style.display = 'none';
+  });
+}
+
+// ══════════════════════════════════════════
+//  RENDER SIDEBAR
+// ══════════════════════════════════════════
+function renderSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = `<div class="sidebar-label">Sections</div>`;
+  SECTIONS.forEach((sec, i) => {
+    const locked = i > 0 && !G.completed.has(SECTIONS[i-1].id);
+    const done = G.completed.has(sec.id);
+    const active = G.currentSection === i;
+    const div = document.createElement('div');
+    div.className = `sidebar-section${active ? ' active' : ''}${locked ? ' locked' : ''}`;
+    div.id = `ss-${i}`;
+    div.innerHTML = `
+      <div class="ss-icon">${sec.icon}</div>
+      <div class="ss-info">
+        <div class="ss-name">${sec.title}</div>
+        <div class="ss-meta">${sec.tag} · ${sec.xp}xp</div>
+      </div>
+      <div class="ss-check">${done ? '✓' : locked ? '🔒' : ''}</div>
+    `;
+    if (!locked) div.onclick = () => startSection(i);
+    sb.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════
+//  RENDER MAP
+// ══════════════════════════════════════════
+function renderMap() {
+  const grid = document.getElementById('map-grid');
+  grid.innerHTML = '';
+  SECTIONS.forEach((sec, i) => {
+    const locked = i > 0 && !G.completed.has(SECTIONS[i-1].id);
+    const done = G.completed.has(sec.id);
+    const card = document.createElement('div');
+    card.className = `map-card${locked ? ' locked' : ''}${done ? ' done' : ''}`;
+    card.innerHTML = `
+      <div class="mc-top">
+        <div class="mc-icon">${sec.icon}</div>
+        <div class="mc-badge${done ? ' done' : ''}">${done ? '✓ Done' : sec.tag}</div>
+      </div>
+      <div class="mc-num">SECTION ${String(i+1).padStart(2,'0')}</div>
+      <div class="mc-title">${sec.title}</div>
+      <div class="mc-desc">${sec.desc}</div>
+      <div class="mc-xp">+${sec.xp} XP${locked ? ' · 🔒 Locked' : ''}</div>
+    `;
+    if (!locked) card.onclick = () => startSection(i);
+    grid.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════
+//  AI QUESTION GENERATION
+// ══════════════════════════════════════════
+async function generateQuestions(section) {
+  const prompt = `You are generating quiz questions for a Python learning game about "${section.title}".
+
+Generate exactly 5 questions as a JSON array. Each question must be one of these types:
+
+1. type "learn" — a concept card:
+   {"type":"learn","title":"...","body":"explanation text","code":"optional code as HTML with these span classes: cs-kw cs-fn cs-var cs-str cs-num cs-cm"}
+
+2. type "quiz" — multiple choice:
+   {"type":"quiz","q":"question text","opts":["A","B","C","D"],"answer":0,"explain":"why correct"}
+
+3. type "fill" — fill in the blank:
+   {"type":"fill","q":"question text","answer":"exact answer","hint":"a hint","explain":"explanation"}
+
+Rules:
+- Start with exactly 1 "learn" card, then mix quiz and fill
+- Questions must be creative, practical, real Python scenarios
+- Code in learn cards must use the span classes listed (not raw code)
+- Fill answers should be single words or short expressions
+- No markdown in responses — pure JSON array only
+- Cover these concepts for ${section.title}: ${section.desc}
+
+Respond with ONLY the JSON array, nothing else.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const questions = JSON.parse(clean);
+    if (Array.isArray(questions) && questions.length >= 3) return questions;
+  } catch(e) {
+    console.warn('AI unavailable, using fallback', e);
+  }
+  return null;
+}
+
+async function getHintFromAI(question, section) {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `Give a one-sentence hint (max 20 words) for this Python ${section} question: "${question}". Hint only, no preamble.`
+        }]
+      })
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text?.trim() || null;
+  } catch(e) { return null; }
+}
+
+// ══════════════════════════════════════════
+//  SECTION START
+// ══════════════════════════════════════════
+async function startSection(idx) {
+  G.currentSection = idx;
+  G.currentStep = 0;
+  G.stepResults = [];
+  G.questions = [];
+
+  const sec = SECTIONS[idx];
+  document.getElementById('gh-section-name').innerHTML = `${sec.icon} <span style="color:var(--accent)">${sec.title}</span>`;
+  showView('game');
+  renderSidebar();
+
+  // Show loading
+  document.getElementById('question-area').innerHTML = `
+    <div class="ai-loading">
+      <div class="ai-dots"><span></span><span></span><span></span></div>
+      <span>Claude is generating fresh questions for <strong>${sec.title}</strong>...</span>
+    </div>
+  `;
+
+  // Try AI
+  const aiQ = await generateQuestions(sec);
+  G.questions = aiQ || FALLBACK_QUESTIONS[sec.id] || FALLBACK_QUESTIONS.variables;
+
+  buildProgressTrack();
+  renderStep();
+}
+
+function buildProgressTrack() {
+  const track = document.getElementById('progress-track');
+  track.innerHTML = '';
+  G.questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = `prog-seg${i === 0 ? ' current' : ''}`;
+    d.id = `prog-${i}`;
+    track.appendChild(d);
+  });
+}
+
+function updateProgressTrack() {
+  G.questions.forEach((_, i) => {
+    const d = document.getElementById(`prog-${i}`);
+    if (!d) return;
+    d.className = `prog-seg${i < G.currentStep ? ' done' : i === G.currentStep ? ' current' : ''}`;
+  });
+}
+
+// ══════════════════════════════════════════
+//  RENDER STEP
+// ══════════════════════════════════════════
+function renderStep() {
+  updateProgressTrack();
+  const q = G.questions[G.currentStep];
+  const area = document.getElementById('question-area');
+  area.innerHTML = '';
+
+  if (q.type === 'learn') {
+    area.innerHTML = `
+      <div>
+        <div class="q-type-badge">📖 Learn</div>
+        <div class="q-question">${q.title}</div>
+        <div class="q-sub">${q.body || ''}</div>
+        ${q.code ? `<div class="code-snippet">${q.code}</div>` : ''}
+      </div>
+      <div><button class="continue-btn" onclick="nextStep(true)">Got it, continue →</button></div>
+    `;
+  } else if (q.type === 'quiz') {
+    const letters = ['A','B','C','D'];
+    const opts = (q.opts || q.options || []).map((o, i) => `
+      <button class="option" id="opt-${i}" onclick="checkQuiz(${i})">
+        <span class="option-key">${letters[i]}</span>${o}
+      </button>
+    `).join('');
+    area.innerHTML = `
+      <div>
+        <div class="q-type-badge">🎯 Quiz</div>
+        <div class="q-question">${q.q || q.question}</div>
+      </div>
+      <div class="options">${opts}</div>
+      <div id="feedback-area"></div>
+      <div id="action-area" style="display:none">
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="continue-btn" onclick="nextStep()">Continue →</button>
+          <button style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font-body)" onclick="showHint('${(q.q||q.question||'').replace(/'/g,"\\'")}')">💡 Hint</button>
+        </div>
+      </div>
+    `;
+  } else if (q.type === 'fill') {
+    area.innerHTML = `
+      <div>
+        <div class="q-type-badge">✏️ Fill in the Blank</div>
+        <div class="q-question">${q.q || q.question}</div>
+        ${q.explain ? `<div class="q-sub">${q.explain}</div>` : ''}
+      </div>
+      <div class="fill-row">
+        <input class="fill-input" id="fill-in" placeholder="Type your answer..." autocomplete="off" spellcheck="false" />
+        <button class="check-btn" id="check-btn" onclick="checkFill()">Check ✓</button>
+      </div>
+      <div id="feedback-area"></div>
+      <div id="action-area" style="display:none">
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="continue-btn" onclick="nextStep()">Continue →</button>
+          <button style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font-body)" onclick="showHint('${(q.q||q.question||'').replace(/'/g,"\\'")}')">💡 Hint</button>
+        </div>
+      </div>
+    `;
+    const inp = document.getElementById('fill-in');
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkFill(); });
+    inp.focus();
+  }
+}
+
+// ══════════════════════════════════════════
+//  CHECK ANSWERS
+// ══════════════════════════════════════════
+function checkQuiz(idx) {
+  const q = G.questions[G.currentStep];
+  const correct = idx === (q.answer ?? q.correct ?? 0);
+  document.querySelectorAll('.option').forEach(b => b.disabled = true);
+  document.getElementById(`opt-${q.answer ?? 0}`).classList.add('correct');
+  if (!correct) document.getElementById(`opt-${idx}`).classList.add('wrong');
+  showFeedback(correct, q.explain || (correct ? 'Correct!' : `Correct answer was: ${(q.opts||q.options||[])[q.answer??0]}`));
+  document.getElementById('action-area').style.display = 'block';
+  recordResult(correct);
+}
+
+function checkFill() {
+  const q = G.questions[G.currentStep];
+  const inp = document.getElementById('fill-in');
+  const val = inp.value.trim().toLowerCase().replace(/['"]/g,'');
+  const ans = String(q.answer || '').toLowerCase().replace(/['"]/g,'');
+  const correct = val === ans || val === ans.replace(/\s/g,'');
+  inp.classList.add(correct ? 'correct' : 'wrong');
+  inp.disabled = true;
+  document.getElementById('check-btn').disabled = true;
+  showFeedback(correct, q.explain || (correct ? 'Correct!' : `The answer was: ${q.answer}`));
+  document.getElementById('action-area').style.display = 'block';
+  recordResult(correct);
+}
+
+function showFeedback(correct, msg) {
+  const area = document.getElementById('feedback-area');
+  area.innerHTML = `
+    <div class="feedback ${correct ? 'correct' : 'wrong'}">
+      <div class="feedback-icon">${correct ? '✓' : '✗'}</div>
+      <div class="feedback-text">${msg}</div>
+    </div>
+  `;
+}
+
+function recordResult(correct) {
+  G.stepResults.push(correct);
+  if (correct) {
+    G.streak++;
+    if (G.streak > G.bestStreak) G.bestStreak = G.streak;
+    const pts = 10 * (G.streak >= 3 ? 2 : 1);
+    G.score += pts;
+    if (G.streak >= 3) showCombo();
+  } else {
+    G.streak = 0;
+  }
+  updateHUD();
+}
+
+function nextStep(free = false) {
+  if (free) G.stepResults.push(true);
+  G.currentStep++;
+  if (G.currentStep >= G.questions.length) {
+    showResult();
+  } else {
+    renderStep();
+  }
+}
+
+// ══════════════════════════════════════════
+//  RESULT
+// ══════════════════════════════════════════
+function showResult() {
+  const sec = SECTIONS[G.currentSection];
+  const correct = G.stepResults.filter(Boolean).length;
+  const total = G.stepResults.length;
+  const pct = Math.round((correct / total) * 100);
+  const xpEarned = Math.round(sec.xp * (pct / 100));
+
+  G.xp = Math.min(TOTAL_XP, G.xp + xpEarned);
+  G.totalXp += xpEarned;
+  G.completed.add(sec.id);
+
+  const icon = pct === 100 ? '🏆' : pct >= 80 ? '⭐' : pct >= 60 ? '😊' : '💪';
+  const title = pct === 100 ? 'Perfect Run!' : pct >= 80 ? 'Great Work!' : 'Section Done!';
+  const msg = pct === 100 ? 'Flawless! You nailed every question.' : pct >= 80 ? `Strong performance — ${correct}/${total} correct.` : `You got ${correct}/${total}. Review the tricky bits and try again!`;
+
+  document.getElementById('rv-icon').textContent = icon;
+  document.getElementById('rv-title').textContent = title;
+  document.getElementById('rv-score').textContent = `${pct}%`;
+  document.getElementById('rv-sub').textContent = msg;
+  document.getElementById('rv-xp').textContent = `+${xpEarned} XP earned`;
+
+  const nextIdx = G.currentSection + 1;
+  const nextBtn = document.getElementById('rv-next');
+  nextBtn.style.display = nextIdx < SECTIONS.length ? 'block' : 'none';
+
+  showView('result');
+  updateHUD();
+  renderSidebar();
+  renderMap();
+  saveScore();
+}
+
+function nextSection() {
+  const next = G.currentSection + 1;
+  if (next < SECTIONS.length) startSection(next);
+}
+
+function backToMap() {
+  G.currentSection = null;
+  showView('map');
+  renderSidebar();
+}
+
+// ══════════════════════════════════════════
+//  HUD
+// ══════════════════════════════════════════
+function updateHUD() {
+  document.getElementById('hud-score').textContent = G.score;
+  document.getElementById('hud-streak').textContent = G.streak;
+  document.getElementById('xp-fill').style.width = `${(G.xp / TOTAL_XP) * 100}%`;
+  document.getElementById('xp-num').textContent = `${G.xp} / ${TOTAL_XP}`;
+  document.getElementById('stat-score').textContent = G.score;
+  document.getElementById('stat-streak').textContent = G.bestStreak;
+  document.getElementById('stat-sections').textContent = G.completed.size;
+  document.getElementById('stat-xp').textContent = G.totalXp;
+}
+
+function showCombo() {
+  const el = document.getElementById('combo-flash');
+  document.getElementById('combo-num').textContent = G.streak;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1600);
+}
+
+async function showHint(questionText) {
+  const panel = document.getElementById('hint-panel');
+  const text = document.getElementById('hint-text');
+  const q = G.questions[G.currentStep];
+  const fallbackHint = q?.hint || 'Think carefully about what the question is asking.';
+  text.textContent = 'Getting hint...';
+  panel.classList.add('show');
+
+  const aiHint = await getHintFromAI(questionText, SECTIONS[G.currentSection]?.title || '');
+  text.textContent = aiHint || fallbackHint;
+  setTimeout(() => panel.classList.remove('show'), 5000);
+}
+
+// ══════════════════════════════════════════
+//  LEADERBOARD (persistent storage)
+// ══════════════════════════════════════════
+async function loadLeaderboard() {
+  try {
+    const result = await window.storage.list('cq_score:', true);
+    const keys = result?.keys || [];
+    const entries = [];
+    for (const key of keys.slice(0, 20)) {
+      try {
+        const r = await window.storage.get(key, true);
+        if (r?.value) entries.push(JSON.parse(r.value));
+      } catch(e) {}
+    }
+    entries.sort((a, b) => b.score - a.score);
+    renderLeaderboard(entries);
+  } catch(e) {
+    renderLeaderboard([]);
+  }
+}
+
+function renderLeaderboard(entries) {
+  const el = document.getElementById('lb-entries');
+  if (!entries.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No scores yet. Be the first!</div>';
+    return;
+  }
+  const medals = ['g','s','b'];
+  const emojis = ['🏆','⚡','🚀','🎯','✨','💎','🔥','⭐'];
+  el.innerHTML = entries.slice(0, 15).map((e, i) => {
+    const isMe = e.name === G.playerName;
+    return `
+      <div class="lb-entry${isMe ? ' lbe-self' : ''}" id="${isMe ? 'my-lb-row' : ''}">
+        <div class="lbe-rank ${medals[i] || ''}">${String(i+1).padStart(2,'0')}</div>
+        <div class="lbe-avatar">${emojis[i % emojis.length]}</div>
+        <div class="lbe-info">
+          <div class="lbe-name">${e.name}${isMe ? ' (you)' : ''}</div>
+          <div class="lbe-detail">${e.sections || 0} sections · ${e.xp || 0}xp</div>
+        </div>
+        <div class="lbe-score">${e.score}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function saveScore() {
+  if (G.playerName === 'Guest' || !G.score) return;
+  const key = `cq_score:${G.playerName.toLowerCase().replace(/\s/g,'_')}`;
+  try {
+    const existing = await window.storage.get(key, true).catch(() => null);
+    const prev = existing ? JSON.parse(existing.value) : null;
+    if (!prev || G.score > prev.score) {
+      await window.storage.set(key, JSON.stringify({
+        name: G.playerName,
+        score: G.score,
+        xp: G.totalXp,
+        sections: G.completed.size,
+        ts: Date.now()
+      }), true);
+      loadLeaderboard();
+    }
+  } catch(e) {}
+}
+
+function scrollToMyScore() {
+  const row = document.getElementById('my-lb-row');
+  if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+</body>
+</html>
