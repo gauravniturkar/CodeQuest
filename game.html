@@ -693,67 +693,38 @@ function renderMap() {
 //  AI QUESTION GENERATION
 // ══════════════════════════════════════════
 async function generateQuestions(section) {
-  const prompt = `You are generating quiz questions for a Python learning game about "${section.title}".
-
-Generate exactly 5 questions as a JSON array. Each question must be one of these types:
-
-1. type "learn" — a concept card:
-   {"type":"learn","title":"...","body":"explanation text","code":"optional code as HTML with these span classes: cs-kw cs-fn cs-var cs-str cs-num cs-cm"}
-
-2. type "quiz" — multiple choice:
-   {"type":"quiz","q":"question text","opts":["A","B","C","D"],"answer":0,"explain":"why correct"}
-
-3. type "fill" — fill in the blank:
-   {"type":"fill","q":"question text","answer":"exact answer","hint":"a hint","explain":"explanation"}
-
-Rules:
-- Start with exactly 1 "learn" card, then mix quiz and fill
-- Questions must be creative, practical, real Python scenarios
-- Code in learn cards must use the span classes listed (not raw code)
-- Fill answers should be single words or short expressions
-- No markdown in responses — pure JSON array only
-- Cover these concepts for ${section.title}: ${section.desc}
-
-Respond with ONLY the JSON array, nothing else.`;
-
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
+        sectionTitle: section.title,
+        sectionDesc: section.desc,
+        sectionId: section.id,
       })
     });
+    if (!res.ok) throw new Error(`API ${res.status}`);
     const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const questions = JSON.parse(clean);
-    if (Array.isArray(questions) && questions.length >= 3) return questions;
+    if (Array.isArray(data.questions) && data.questions.length >= 3) return data.questions;
   } catch(e) {
-    console.warn('AI unavailable, using fallback', e);
+    console.warn('AI unavailable, using fallback:', e.message);
   }
   return null;
 }
 
 async function getHintFromAI(question, section) {
+  const q = G.questions[G.currentStep];
+  const fallbackHint = q?.hint || 'Think about what Python built-in functions might help here.';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/hint', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `Give a one-sentence hint (max 20 words) for this Python ${section} question: "${question}". Hint only, no preamble.`
-        }]
-      })
+      body: JSON.stringify({ question, section, fallbackHint })
     });
+    if (!res.ok) return fallbackHint;
     const data = await res.json();
-    return data.content?.[0]?.text?.trim() || null;
-  } catch(e) { return null; }
+    return data.hint || fallbackHint;
+  } catch(e) { return fallbackHint; }
 }
 
 // ══════════════════════════════════════════
