@@ -1,0 +1,130 @@
+/* ══════════════════════════════════════════════════════════════
+   MOTION
+   Every animation here is opt-in via a class or data attribute so
+   nothing moves that wasn't asked to move.
+   ══════════════════════════════════════════════════════════════ */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translate3d(24px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes shimmer {
+  from { background-position: -420px 0; }
+  to   { background-position: 420px 0; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.7; }
+  70%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-6px); opacity: 1; }
+}
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(200%); }
+}
+
+/* ── entrance helpers ── */
+.anim-fade-up   { animation: fade-up var(--dur-slow) var(--ease-out) both; }
+.anim-fade-in   { animation: fade-in var(--dur-base) var(--ease-out) both; }
+.anim-scale-in  { animation: scale-in var(--dur-base) var(--ease-spring) both; }
+.anim-slide-in  { animation: slide-in-right var(--dur-base) var(--ease-out) both; }
+.anim-pop       { animation: pop 420ms var(--ease-spring); }
+.anim-shake     { animation: shake 420ms var(--ease-in-out); }
+
+/* Staggered lists: each child reads its own --i to offset its delay. */
+.stagger > * {
+  animation: fade-up var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* ── view transitions ── */
+.view { animation: fade-up 320ms var(--ease-out) both; }
+.view-leaving {
+  animation: fade-in 160ms var(--ease-out) reverse both;
+  pointer-events: none;
+}
+
+/* ── skeleton loading ── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    var(--surface-3) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 420px 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--r-sm);
+  color: transparent;
+  user-select: none;
+}
+
+/* ── interaction feel ── */
+.lift {
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.lift:active { transform: translateY(0); transition-duration: 60ms; }
+
+.press { transition: transform 90ms var(--ease-out); }
+.press:active { transform: scale(0.97); }
+
+/* Ripple origin is set from the pointer position in JS. */
+.ripple { position: relative; overflow: hidden; }
+.ripple > .ripple-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.18;
+  transform: scale(0);
+  animation: ripple-out 520ms var(--ease-out) forwards;
+  pointer-events: none;
+}
+@keyframes ripple-out {
+  to { transform: scale(2.6); opacity: 0; }
+}
+
+/* ── reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .lift:hover { transform: none; }
+}
