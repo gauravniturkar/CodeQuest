@@ -1,0 +1,154 @@
+/* ══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   Two axes of theming:
+     data-mode   → light | dark   (the black/white axis)
+     data-accent → citrus | ember | ocean | violet | mono
+   Accents are derived from a hue+saturation pair so every shade
+   stays in relationship, and lightness is retuned per mode so
+   contrast holds in both.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── type ── */
+  --font-display: 'Space Grotesk', 'Syne', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-2xl: 40px;
+
+  /* ── space & shape ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-full: 999px;
+
+  /* ── motion ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+
+  /* ── layout ── */
+  --topbar-h: 56px;
+  --sidebar-w: 264px;
+  --rail-w: 320px;
+
+  /* ── accent (default: citrus) ── */
+  --accent-h: 72;
+  --accent-s: 92%;
+}
+
+/* ────────────────────────────────────────
+   LIGHT MODE — the default surface
+   ──────────────────────────────────────── */
+:root,
+[data-mode='light'] {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-sunken: #f6f7f8;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --surface-3: #e9eaee;
+  --overlay: rgba(255, 255, 255, 0.82);
+  --scrim: rgba(16, 18, 22, 0.45);
+
+  --border: #e3e5e9;
+  --border-strong: #cbd0d8;
+
+  --text: #14161a;
+  --text-dim: #565d68;
+  --text-mute: #8b939f;
+  --text-inverse: #ffffff;
+
+  --accent-l: 38%;
+  --accent-fg: #ffffff;
+  --accent-wash-a: 0.09;
+
+  --shadow-sm: 0 1px 2px rgba(16, 18, 22, 0.06);
+  --shadow-md: 0 4px 16px -4px rgba(16, 18, 22, 0.12);
+  --shadow-lg: 0 18px 48px -12px rgba(16, 18, 22, 0.22);
+
+  --grid-line: rgba(16, 18, 22, 0.045);
+
+  --ok: #16794a;   --ok-bg: rgba(22, 121, 74, 0.1);
+  --warn: #9a6400; --warn-bg: rgba(154, 100, 0, 0.1);
+  --bad: #c02a2a;  --bad-bg: rgba(192, 42, 42, 0.09);
+
+  /* syntax */
+  --sx-kw: #a626a4;  --sx-fn: #4078f2;  --sx-str: #50a14f;
+  --sx-num: #b76b01; --sx-cm: #9aa2ad;  --sx-var: #2b3038;
+}
+
+/* ────────────────────────────────────────
+   DARK MODE
+   ──────────────────────────────────────── */
+[data-mode='dark'] {
+  color-scheme: dark;
+
+  --bg: #0b0c0e;
+  --bg-sunken: #08090a;
+  --surface: #131519;
+  --surface-2: #1a1d22;
+  --surface-3: #23272e;
+  --overlay: rgba(11, 12, 14, 0.82);
+  --scrim: rgba(0, 0, 0, 0.62);
+
+  --border: #23262c;
+  --border-strong: #333840;
+
+  --text: #eceef1;
+  --text-dim: #9aa2ad;
+  --text-mute: #656d78;
+  --text-inverse: #0b0c0e;
+
+  --accent-l: 62%;
+  --accent-fg: #0b0c0e;
+  --accent-wash-a: 0.14;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 20px -4px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 24px 60px -16px rgba(0, 0, 0, 0.75);
+
+  --grid-line: rgba(255, 255, 255, 0.035);
+
+  --ok: #4ade80;   --ok-bg: rgba(74, 222, 128, 0.12);
+  --warn: #fbbf24; --warn-bg: rgba(251, 191, 36, 0.12);
+  --bad: #f87171;  --bad-bg: rgba(248, 113, 113, 0.12);
+
+  --sx-kw: #ff79c6;  --sx-fn: #8be9fd;  --sx-str: #50fa7b;
+  --sx-num: #ffb86c; --sx-cm: #6272a4;  --sx-var: #f8f8f2;
+}
+
+/* ────────────────────────────────────────
+   ACCENT PALETTES
+   ──────────────────────────────────────── */
+[data-accent='citrus'] { --accent-h: 72;  --accent-s: 92%; }
+[data-accent='ember']  { --accent-h: 18;  --accent-s: 88%; }
+[data-accent='ocean']  { --accent-h: 199; --accent-s: 90%; }
+[data-accent='violet'] { --accent-h: 265; --accent-s: 82%; }
+[data-accent='mono']   { --accent-h: 220; --accent-s: 0%;  }
+
+/* Citrus is a light-on-dark colour: it needs a dark foreground and a
+   deeper lightness in light mode to stay readable. */
+[data-accent='citrus'][data-mode='light'] { --accent-l: 30%; }
+[data-accent='citrus'][data-mode='dark']  { --accent-l: 68%; --accent-fg: #14161a; }
+[data-accent='mono'][data-mode='light']   { --accent-l: 12%; }
+[data-accent='mono'][data-mode='dark']    { --accent-l: 92%; }
+
+:root {
+  --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+  --accent-hover: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 6%));
+  --accent-dim: hsl(var(--accent-h) calc(var(--accent-s) * 0.6) var(--accent-l) / 0.55);
+  --accent-wash: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / var(--accent-wash-a));
+  --accent-ring: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.35);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-ring);
+}
